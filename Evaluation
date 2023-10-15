@@ -1,0 +1,11 @@
+trainer.evaluate()
+predictions, labels, _ = trainer.predict(test_dataset)
+
+predictions = np.argmax(predictions, axis = 1)
+print(classification_report(predictions, labels))
+print(f"Accuracy = {accuracy_score(predictions, labels):.6f}, \
+        Precision = {precision_score(predictions, labels, average = 'macro'):.6f}, \
+        Recall = {recall_score(predictions, labels, average = 'macro'):.6f}, \
+        F1 = {f1_score(predictions, labels, average = 'macro'):.6f}")
+print(confusion_matrix(predictions, labels))
+sns.heatmap(confusion_matrix(predictions, labels))
