@@ -1,0 +1,58 @@
+### Model 4: Bidirectonal RNN model 
+
+# Set random seed and create embedding layer (new embedding layer for each model)
+tf.random.set_seed(42)
+from tensorflow.keras import layers
+model_4_embedding = layers.Embedding(input_dim=max_vocab_length,
+                                     output_dim=128,
+                                     embeddings_initializer="uniform",
+                                     input_length=max_length,
+                                     name="embedding_4")
+
+# Build a Bidirectional RNN in TensorFlow
+inputs = layers.Input(shape=(1,), dtype="string")
+x = text_vectorizer(inputs)
+x = model_4_embedding(x)
+# x = layers.Bidirectional(layers.LSTM(64, return_sequences=True))(x) # stacking RNN layers requires return_sequences=True
+x = layers.Bidirectional(layers.LSTM(64))(x) # bidirectional goes both ways so has double the parameters of a regular LSTM layer
+outputs = layers.Dense(1, activation="sigmoid")(x)
+model_4 = tf.keras.Model(inputs, outputs, name="model_4_Bidirectional")
+
+
+# Compile
+model_4.compile(loss="binary_crossentropy",
+                optimizer=tf.keras.optimizers.Adam(),
+                metrics=["accuracy"])
+
+
+# Get a summary of our bidirectional model
+model_4.summary()
+
+
+
+# Fit the model (takes longer because of the bidirectional layers)
+model_4_history = model_4.fit(train_sentences,
+                              train_labels,
+                              epochs=5,
+                              validation_data=(val_sentences, val_labels),
+                              callbacks=[create_tensorboard_callback(SAVE_DIR, "bidirectional_RNN")])
+
+
+
+# Make predictions with bidirectional RNN on the validation data
+model_4_pred_probs = model_4.predict(val_sentences)
+model_4_pred_probs[:10]
+
+
+# Convert prediction probabilities to labels
+model_4_preds = tf.squeeze(tf.round(model_4_pred_probs))
+model_4_preds[:10]
+
+
+# Calculate bidirectional RNN model results
+model_4_results = calculate_results(val_labels, model_4_preds)
+model_4_results
+
+
+# Check to see how the bidirectional model performs against the baseline
+compare_baseline_to_new_results(baseline_results, model_4_results)
